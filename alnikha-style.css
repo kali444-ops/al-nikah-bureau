@@ -16,18 +16,16 @@
             background: rgb(16, 102, 23);
             width: 100%;
             padding: 12px 18px;
-            display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
+            position: absolute;
         }
 
         header nav {
             display: flex;
             align-items: center;
             display:block;
-            
-
+            margin-top:3%;
         }
         
 
@@ -234,4 +232,5 @@
             .service-box {
                 width: 90%;
             }
+
         }
