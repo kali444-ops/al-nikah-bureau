@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Al Nikha Bureau Form</title>
+
+<style>
+    body {
+        font-family: "Poppins", sans-serif;
+        background: #f3efe6;
+        margin: 0;
+        padding: 0;
+    }
+
+    .header {
+        text-align: center;
+        padding: 30px;
+        background-color: rgb(14, 51, 11);
+        color: white;
+        font-size: 28px;
+        letter-spacing: 1px;
+    }
+
+    .container {
+        max-width: 450px;
+        background: white;
+        padding: 25px;
+        margin: 40px auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border-top: 4px solid #064420;
+    }
+
+    label {
+        font-weight: 600;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        margin-bottom: 15px;
+        border: 1px solid #aaa;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    button {
+        width: 100%;
+        background-color: rgb(14, 51, 11);
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    button[disabled] {
+        opacity: 0.7;
+        cursor: default;
+    }
+
+    .back {
+        text-decoration: none;
+        background-color: rgb(14, 51, 11);
+        border: 1px solid rgb(0, 0, 0);
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-top: 5%;
+        z-index: 5;
+        font-weight: 600;
+        color: white;
+        display: inline-block;
+    }
+
+    .success-message {
+        text-align: center;
+        color: green;
+        font-size: 16px;
+        display: none;
+        margin-top: 15px;
+    }
+
+    .error-message {
+        text-align: center;
+        color: #b00020;
+        font-size: 14px;
+        display: none;
+        margin-top: 10px;
+    }
+
+    .small-note {
+        font-size: 13px;
+        color: #555;
+        margin-top: -8px;
+        margin-bottom: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="header">Al Nikha Bureau – Registration</div>
+
+<div class="container">
+  <!-- Note: keep this id if you want JS to work as-is -->
+  <form id="alnikhaForm" novalidate>
+    <label>Full Name</label>
+    <input type="text" name="name" required>
+
+    <label>Age</label>
+    <input type="number" name="age" min="18" required>
+
+    <label>Gender</label>
+    <select name="gender" required>
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+    </select>
+
+    <label>Phone Number</label>
+    <input type="tel" name="phone" required placeholder="10-15 digits">
+
+    <div class="small-note">Enter numbers only, without + or spaces.</div>
+
+    <label>Email</label>
+    <input type="email" name="email">
+
+    <label>City</label>
+    <input type="text" name="city">
+
+    <label>Community / Religion</label>
+    <input type="text" name="community">
+
+    <label>Your Requirements</label>
+    <textarea name="requirements" rows="4"></textarea>
+
+    <button type="submit" id="submitBtn">Submit</button>
+  </form>
+
+  <div class="success-message" id="successMsg">
+      Thank you! Your details have been submitted.
+  </div>
+
+  <div class="error-message" id="errorMsg"></div>
+
+  <a class="back" href="index.html">Back</a>
+</div>
+<script>
+(function() {
+  // Replace this with your Google Apps Script URL (same as you had)
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbyja84fwy-Hegy6yd0zTjPfaIdMws-ZyLR7awRnB2kOFfnVy1du0S4dEp236LkTmM_UFw/exec";
+
+  const form = document.getElementById('alnikhaForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const successMsg = document.getElementById('successMsg');
+  const errorMsg = document.getElementById('errorMsg');
+
+  function showSuccess() {
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'block';
+    setTimeout(() => successMsg.style.display = 'none', 4000);
+  }
+
+  function showError(text) {
+    successMsg.style.display = 'none';
+    errorMsg.textContent = text;
+    errorMsg.style.display = 'block';
+  }
+
+  function validatePhone(phone) {
+    return /^\d{10,15}$/.test(phone);
+  }
+
+  form.addEventListener('submit', async function(e) {
+
+    /* -------------------------------------------
+       ADDED CODE (required field empty check)
+       ------------------------------------------- */
+    const requiredFields = form.querySelectorAll("[required]");
+    let emptyFound = false;
+
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        emptyFound = true;
+      }
+    });
+
+    if (emptyFound) {
+      e.preventDefault();
+      errorMsg.style.display = "block";
+      errorMsg.textContent = "Please fill all required fields.";
+      return;
+    }
+    /* -------------------------------------------
+       END ADDED CODE
+       ------------------------------------------- */
+
+    e.preventDefault();
+    successMsg.style.display = 'none';
+    errorMsg.style.display = 'none';
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    if (data.phone && !validatePhone(data.phone)) {
+      showError('Please enter a valid phone number (10–15 digits).');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+      const response = await fetch(ENDPOINT, {
+        method: 'POST',
+        mode:'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+    
+      const text = await response.text().catch(() => '');
+      let ok = true;
+
+      if (response.ok && /success/i.test(text)) ok = true;
+
+      if (!ok) {
+        try {
+          const json = JSON.parse(text);
+          if (json && (json.status && /success/i.test(json.status + '') || json.result && /success/i.test(json.result + ''))) {
+            ok = true;
+          }
+        } catch (err) {}
+      }
+
+      if (ok) {
+        showSuccess();
+        form.reset();
+      } else {
+        showError('Submission failed. Server response: ' + (text || response.statusText || response.status));
+      }
+    } catch (err) {
+      showError('Error submitting form. Check your network or try again.');
+      console.error('Form submit error:', err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+})();
+</script>
+
+
+</body>
+</html>
